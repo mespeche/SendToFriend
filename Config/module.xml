@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+    <fullnamespace>SendToFriend\SendToFriend</fullnamespace>
+    <descriptive locale="en_US">
+        <title>Share a product with a friend by email</title>
+    </descriptive>
+    <descriptive locale="fr_FR">
+        <title>Partager un produit avec un ami par email</title>
+    </descriptive>
+    <version>0.1</version>
+    <author>
+        <name>Michaël Espeche</name>
+        <email>mespeche@openstudio.fr</email>
+    </author>
+    <type>classic</type>
+    <thelia>2.0.0</thelia>
+    <stability>alpha</stability>
+</module>
