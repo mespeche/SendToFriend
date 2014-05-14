@@ -62,7 +62,7 @@ class SendToFriendController extends BaseFrontController {
             $body .= Translator::getInstance()->trans('You can access this product in the following link : ', array(), 'sendtofriend') . $product->getUrl();
             $body .= "\n\r----------------------------------------\n\r";
             $body .= $form->get('message')->getData();
-            $body .= "\n\r" . Translator::getInstance()->trans('This message was sent by : ', array(), 'sendtofriend') . $form->get('friend-email')->getData();
+            $body .= "\n\r" . Translator::getInstance()->trans('This message was sent by : ', array(), 'sendtofriend') . $form->get('email')->getData();
 
 
             $message = \Swift_Message::newInstance($subject)
