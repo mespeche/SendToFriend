@@ -1,0 +1,9 @@
+{loop name="prod" type="product" id={$product_id}}Bonjour,
+
+{$contact_name} ($contact_email) souhaite vous faire découvrir le produit {$TITLE} sur la boutique {config key="store_name"}.
+
+{$contact_name}
+
+Pour découvrir ce produit, cliquez ici : {$URL}.
+
+A bientot sur {config key="store_name"} !{/loop}

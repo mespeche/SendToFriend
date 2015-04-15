@@ -7,12 +7,12 @@
     <descriptive locale="fr_FR">
         <title>Partager un produit avec un ami par email</title>
     </descriptive>
-    <version>0.1</version>
+    <version>0.8</version>
     <author>
         <name>Michaël Espeche</name>
         <email>mespeche@openstudio.fr</email>
     </author>
     <type>classic</type>
-    <thelia>2.0.0</thelia>
-    <stability>alpha</stability>
+    <thelia>2.1.0</thelia>
+    <stability>beta</stability>
 </module>
