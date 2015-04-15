@@ -22,55 +22,69 @@
 /*************************************************************************************/
 namespace SendToFriend\Form;
 
+use SendToFriend\SendToFriend;
 use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
+use Thelia\Model\Customer;
 
 class SendToFriendForm extends BaseForm
 {
     protected function buildForm()
     {
-        $this->formBuilder
-            ->add('email', 'email', array(
-                    'constraints' => array(
-                        new NotBlank()
-                    ),
-                    'label' => Translator::getInstance()->trans('Your email address', array(), 'sendtofriend'),
-                    'label_attr' => array(
-                        'for' => 'sendtofriend-email'
-                    )
-                ))
-            ->add('friend-email', 'email', array(
-                    'constraints' => array(
-                        new NotBlank()
-                    ),
-                    'label' => Translator::getInstance()->trans('The email address of your friend', array(), 'sendtofriend'),
-                    'label_attr' => array(
-                        'for' => 'sendtofriend-friend-email'
-                    )
-                ))
-            ->add('message', 'text', array(
-                    'constraints' => array(
-                        new NotBlank()
-                    ),
-                    'label' => Translator::getInstance()->trans('Your message', array(), 'sendtofriend'),
-                    'label_attr' => array(
-                        'for' => 'sendtofriend-message'
-                    )
-                ))
-            ->add("product_id", "hidden", array(
-                    "constraints" => array(
-                        new NotBlank(),
-                        new GreaterThan(array('value' => 0))
-                    )
-                ))
-            ->add("return_url", "hidden", array(
-                    "constraints" => array(
-                        new NotBlank()
-                    )
-                ))
+        if (null !== $currentUser = $this->getRequest()->getSession()->getCustomerUser()) {
+            /** @var Customer $currentUser */
+            $userName = $currentUser->getFirstname() . ' ' . $currentUser->getLastname();
+            $userEmail = $currentUser->getEmail();
+        } else {
+            $userName = $userEmail = '';
+        }
 
+        $this->formBuilder
+            ->add('email', 'email', [
+                'constraints' => [
+                    new NotBlank()
+                ],
+                'data' => $userEmail,
+                'label' => $this->translator->trans('Your email address', [], SendToFriend::DOMAIN),
+                'label_attr' => [
+                    'for' => 'sendtofriend-email'
+                ]
+            ])
+            ->add('name', 'text', [
+                'constraints' => [
+                    new NotBlank()
+                ],
+                'data' => $userName,
+                'label' => $this->translator->trans('Your name', [], SendToFriend::DOMAIN),
+                'label_attr' => [
+                    'for' => 'sendtofriend-name'
+                ]
+            ])
+            ->add('friend-email', 'email', [
+                    'constraints' => [
+                        new NotBlank()
+                    ],
+                    'label' => $this->translator->trans('E-mail address of your friend', [], SendToFriend::DOMAIN),
+                    'label_attr' => [
+                        'for' => 'sendtofriend-friend-email'
+                    ]
+                ])
+            ->add('message', 'text', [
+                    'constraints' => [
+                        new NotBlank()
+                    ],
+                    'label' => $this->translator->trans('Your message', [], SendToFriend::DOMAIN),
+                    'label_attr' => [
+                        'for' => 'sendtofriend-message'
+                    ]
+                ])
+            ->add("product_id", "hidden", [
+                    "constraints" => [
+                        new NotBlank(),
+                        new GreaterThan(['value' => 0])
+                    ]
+                ])
         ;
     }
 

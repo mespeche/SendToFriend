@@ -24,9 +24,12 @@
 namespace SendToFriend\Controller\Front;
 
 use SendToFriend\Form\SendToFriendForm;
+use SendToFriend\SendToFriend;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
+use Thelia\Log\Tlog;
+use Thelia\Mailer\MailerFactory;
 use Thelia\Model\ConfigQuery;
 use Thelia\Model\ProductQuery;
 
@@ -35,64 +38,70 @@ use Thelia\Model\ProductQuery;
  * @package SendToFriend\Controller\Front
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
-class SendToFriendController extends BaseFrontController {
-
-
-    public function send() {
-
-        $error_message = false;
-        $contactForm = new SendToFriendForm($this->getRequest());
+class SendToFriendController extends BaseFrontController
+{
+    public function send()
+    {
+        $sendToFriend = $this->createForm(SendToFriend::FORM_NAME);
 
         try {
-            $form = $this->validateForm($contactForm);
+            $form = $this->validateForm($sendToFriend);
 
-            $productId = $form->get('product_id')->getData();
+            $data = $form->getData();
 
             $locale = $this->getSession()->getLang()->getLocale();
 
-            $product = ProductQuery::create()->joinWithI18n($locale)->filterByPrimaryKey($productId)->findOne();
+            $product = ProductQuery::create()
+                ->joinWithI18n($locale)
+                ->filterByPrimaryKey($data['product_id'])
+                ->findOne();
 
             if (null === $product) {
-                throw new \InvalidArgumentException(sprintf("%d product id does not exist", $productId));
+                throw new \InvalidArgumentException(sprintf("%d product ID does not exist", $data['product_id']));
             }
 
-            $subject = Translator::getInstance()->trans('A contact wants to share a product with you : ', array(), 'sendtofriend') . $product->getRef() . ' - ' . $product->getTitle();
+            $this->getMailer()->sendEmailMessage(
+                SendToFriend::MESSAGE_NAME,
+                [ $data['email'] => $data['email'] ],
+                [ $data['friend-email'] => '' ],
+                [
+                    'contact_name'    => $data['name'],
+                    'contact_email'   => $data['email'],
+                    'contact_message' => $data['message'],
 
-            $body = $subject . "\n\r";
-            $body .= Translator::getInstance()->trans('You can access this product in the following link : ', array(), 'sendtofriend') . $product->getUrl();
-            $body .= "\n\r----------------------------------------\n\r";
-            $body .= $form->get('message')->getData();
-            $body .= "\n\r" . Translator::getInstance()->trans('This message was sent by : ', array(), 'sendtofriend') . $form->get('email')->getData();
+                    'product_title'   => $product->getTitle(),
+                    'product_ref'     => $product->getRef(),
+                    'product_id'      => $product->getId(),
+                ],
+                $locale
+            );
 
+            // Redirect to the success URL
+            return $this->generateRedirect($sendToFriend->getSuccessUrl());
 
-            $message = \Swift_Message::newInstance($subject)
-                ->addFrom($form->get('email')->getData(), ConfigQuery::read('store_name'))
-                ->addTo($form->get('friend-email')->getData())
-                ->setBody($body)
-            ;
-
-            $this->getMailer()->send($message);
-
-        } catch (FormValidationException $e) {
+        } catch (\Exception $e) {
             $error_message = $e->getMessage();
         }
 
         if ($error_message !== false) {
-            \Thelia\Log\Tlog::getInstance()->error(sprintf('Error during sending mail : %s', $error_message));
+            Tlog::getInstance()->error(sprintf('Error during sending mail : %s', $error_message));
 
-            $contactForm->setErrorMessage($error_message);
+            $sendToFriend->setErrorMessage($error_message);
 
             $this->getParserContext()
-                ->addForm($contactForm)
+                ->addForm($sendToFriend)
                 ->setGeneralError($error_message)
             ;
 
-            $this->redirect('/');
+            // We have here to display again the current template (2.2 only)
+            if (method_exists($this->getParserContext(), 'getCurrentTemplateContext')) {
+                return $this->render(
+                    $this->getParserContext()->getCurrentTemplateContext()->getName(),
+                    $this->getParserContext()->getCurrentTemplateContext()->getParameters()
+                );
+            }
 
-        } else {
-            $this->redirect($form->get('return_url')->getData() . '&sendtofriend_success=1');
+            // At this point we are not able to guess the current template context, let's go to the index page...
         }
-
     }
-
-} 
+}
