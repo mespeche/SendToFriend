@@ -1,6 +1,6 @@
 {loop name="prod" type="product" id={$product_id}}Hello,
 
-{$contact_name} ($contact_email) wants to share the product "<a href="{$URL}">{$TITLE}</a>" with you at {config key="store_name"}.
+{$contact_name} ({$contact_email}) wants to share the product "<a href="{$URL}">{$TITLE}</a>" with you at {config key="store_name"}.
 
 {$contact_message}
 
